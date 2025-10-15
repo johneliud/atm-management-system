@@ -2,8 +2,9 @@
 
 /guide
 
-/docs/justifications.md
-/docs/BUG_FIXES.md
+# Ignore all docs except README.md
+docs/*
+!docs/README.md
 
 *.o
 
