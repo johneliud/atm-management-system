@@ -37,6 +37,7 @@ const char *getPassword(struct User u)
 {
     FILE *fp;
     struct User userChecker;
+    static char passwordBuffer[50];  // Static buffer persists after function returns
 
     if ((fp = fopen("./data/users.txt", "r")) == NULL)
     {
@@ -44,16 +45,41 @@ const char *getPassword(struct User u)
         exit(1);
     }
 
-    while (fscanf(fp, "%s %s", userChecker.name, userChecker.password) != EOF)
+    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF)
     {
         if (strcmp(userChecker.name, u.name) == 0)
         {
             fclose(fp);
-            char *buff = userChecker.password;
-            return buff;
+            strcpy(passwordBuffer, userChecker.password);  // Copy to static buffer
+            return passwordBuffer;
         }
     }
 
     fclose(fp);
     return "no user found";
+}
+
+// Get user ID by username - needed to properly populate User struct during login
+int getUserId(const char *username)
+{
+    FILE *fp;
+    struct User userChecker;
+
+    if ((fp = fopen("./data/users.txt", "r")) == NULL)
+    {
+        printf("Error! opening file");
+        exit(1);
+    }
+
+    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF)
+    {
+        if (strcmp(userChecker.name, username) == 0)
+        {
+            fclose(fp);
+            return userChecker.id;
+        }
+    }
+
+    fclose(fp);
+    return -1;  // User not found
 }
