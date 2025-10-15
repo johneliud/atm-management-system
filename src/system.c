@@ -2,6 +2,36 @@
 
 const char *RECORDS = "./data/records.txt";
 
+// Get next available record ID by reading the file and finding max ID
+int getNextRecordId()
+{
+    FILE *fp;
+    struct Record r;
+    char name[50];
+    int maxId = -1;
+
+    fp = fopen(RECORDS, "r");
+    if (fp == NULL)
+    {
+        // File doesn't exist yet, start with ID 0
+        return 0;
+    }
+
+    while (fscanf(fp, "%d %d %s %d %d/%d/%d %s %d %lf %s",
+                  &r.id, &r.userId, name, &r.accountNbr,
+                  &r.deposit.month, &r.deposit.day, &r.deposit.year,
+                  r.country, &r.phone, &r.amount, r.accountType) != EOF)
+    {
+        if (r.id > maxId)
+        {
+            maxId = r.id;
+        }
+    }
+
+    fclose(fp);
+    return maxId + 1;  // Return next available ID
+}
+
 int getAccountFromFile(FILE *ptr, char name[50], struct Record *r)
 {
     return fscanf(ptr, "%d %d %s %d %d/%d/%d %s %d %lf %s",
@@ -21,9 +51,9 @@ int getAccountFromFile(FILE *ptr, char name[50], struct Record *r)
 void saveAccountToFile(FILE *ptr, struct User u, struct Record r)
 {
     fprintf(ptr, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n",
-            &r->id,
-	    &u->id
-	    &u->name,
+            r.id,
+            u.id,
+            u.name,
             r.accountNbr,
             r.deposit.month,
             r.deposit.day,
@@ -103,6 +133,12 @@ void createNewAcc(struct User u)
     char userName[50];
     FILE *pf = fopen(RECORDS, "a+");
 
+    if (pf == NULL)
+    {
+        printf("Error! Could not open records file\n");
+        exit(1);
+    }
+
 noAccount:
     system("clear");
     printf("\t\t\t===== New record =====\n");
@@ -112,6 +148,9 @@ noAccount:
     printf("\nEnter the account number:");
     scanf("%d", &r.accountNbr);
 
+    // Reset file pointer to beginning for duplicate check
+    rewind(pf);
+
     while (getAccountFromFile(pf, userName, &cr))
     {
         if (strcmp(userName, u.name) == 0 && cr.accountNbr == r.accountNbr)
@@ -120,6 +159,7 @@ noAccount:
             goto noAccount;
         }
     }
+
     printf("\nEnter the country:");
     scanf("%s", r.country);
     printf("\nEnter the phone number:");
@@ -128,6 +168,11 @@ noAccount:
     scanf("%lf", &r.amount);
     printf("\nChoose the type of account:\n\t-> saving\n\t-> current\n\t-> fixed01(for 1 year)\n\t-> fixed02(for 2 years)\n\t-> fixed03(for 3 years)\n\n\tEnter your choice:");
     scanf("%s", r.accountType);
+
+    // Set record ID and user ID
+    r.id = getNextRecordId();
+    r.userId = u.id;
+    strcpy(r.name, u.name);
 
     saveAccountToFile(pf, u, r);
 
@@ -141,6 +186,14 @@ void checkAllAccounts(struct User u)
     struct Record r;
 
     FILE *pf = fopen(RECORDS, "r");
+
+    if (pf == NULL)
+    {
+        printf("Error! Could not open records file\n");
+        printf("No accounts found or file does not exist.\n");
+        success(u);
+        return;
+    }
 
     system("clear");
     printf("\t\t====== All accounts from user, %s =====\n\n", u.name);
