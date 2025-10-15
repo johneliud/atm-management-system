@@ -71,6 +71,8 @@ void initMenu(struct User *u)
             loginMenu(u->name, u->password);
             if (strcmp(u->password, getPassword(*u)) == 0)
             {
+                // Set user ID after successful login
+                u->id = getUserId(u->name);
                 printf("\n\nPassword Match!");
             }
             else
@@ -97,7 +99,7 @@ void initMenu(struct User *u)
 int main()
 {
     struct User u;
-    
+
     initMenu(&u);
     mainMenu(u);
     return 0;
