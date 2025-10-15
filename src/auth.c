@@ -83,3 +83,136 @@ int getUserId(const char *username)
     fclose(fp);
     return -1;  // User not found
 }
+
+// Check if username already exists - returns 1 if exists, 0 if available
+int usernameExists(const char *username)
+{
+    FILE *fp;
+    struct User userChecker;
+
+    fp = fopen("./data/users.txt", "r");
+    if (fp == NULL)
+    {
+        // File doesn't exist yet, so username is available
+        return 0;
+    }
+
+    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF)
+    {
+        if (strcmp(userChecker.name, username) == 0)
+        {
+            fclose(fp);
+            return 1;  // Username already exists
+        }
+    }
+
+    fclose(fp);
+    return 0;  // Username is available
+}
+
+// Get next available user ID by finding the highest existing ID
+int getNextUserId()
+{
+    FILE *fp;
+    struct User userChecker;
+    int maxId = -1;
+
+    fp = fopen("./data/users.txt", "r");
+    if (fp == NULL)
+    {
+        // File doesn't exist yet, start with ID 0
+        return 0;
+    }
+
+    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF)
+    {
+        if (userChecker.id > maxId)
+        {
+            maxId = userChecker.id;
+        }
+    }
+
+    fclose(fp);
+    return maxId + 1;  // Return next available ID
+}
+
+// Register a new user
+void registerMenu(char a[50], char pass[50])
+{
+    struct termios oflags, nflags;
+    char confirmPass[50];
+    FILE *fp;
+
+    system("clear");
+    printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\t User Registration\n\n");
+
+    // Get username
+    printf("\t\t\t\tEnter a username: ");
+    scanf("%s", a);
+
+    // Check if username already exists
+    if (usernameExists(a))
+    {
+        printf("\n\n\t\t\t\t✖ Username '%s' already exists!\n", a);
+        printf("\t\t\t\tPlease try again with a different username.\n");
+        printf("\n\t\t\t\tPress Enter to continue...");
+        getchar();  // Clear input buffer
+        getchar();  // Wait for Enter
+        return;
+    }
+
+    // Get password (with echo disabled)
+    tcgetattr(fileno(stdin), &oflags);
+    nflags = oflags;
+    nflags.c_lflag &= ~ECHO;
+    nflags.c_lflag |= ECHONL;
+
+    if (tcsetattr(fileno(stdin), TCSANOW, &nflags) != 0)
+    {
+        perror("tcsetattr");
+        return exit(1);
+    }
+
+    printf("\n\t\t\t\tEnter a password: ");
+    scanf("%s", pass);
+
+    printf("\n\t\t\t\tConfirm password: ");
+    scanf("%s", confirmPass);
+
+    // Restore terminal
+    if (tcsetattr(fileno(stdin), TCSANOW, &oflags) != 0)
+    {
+        perror("tcsetattr");
+        return exit(1);
+    }
+
+    // Check if passwords match
+    if (strcmp(pass, confirmPass) != 0)
+    {
+        printf("\n\n\t\t\t\t✖ Passwords do not match!\n");
+        printf("\t\t\t\tRegistration failed. Please try again.\n");
+        printf("\n\t\t\t\tPress Enter to continue...");
+        getchar();  // Clear input buffer
+        getchar();  // Wait for Enter
+        return;
+    }
+
+    // Save new user to file
+    fp = fopen("./data/users.txt", "a");
+    if (fp == NULL)
+    {
+        printf("\n\n\t\t\t\t✖ Error! Could not open users file\n");
+        exit(1);
+    }
+
+    int newUserId = getNextUserId();
+    fprintf(fp, "%d %s %s\n", newUserId, a, pass);
+    fclose(fp);
+
+    printf("\n\n\t\t\t\t✔ Registration successful!\n");
+    printf("\t\t\t\tYour user ID is: %d\n", newUserId);
+    printf("\t\t\t\tYou can now login with your credentials.\n");
+    printf("\n\t\t\t\tPress Enter to continue...");
+    getchar();  // Clear input buffer
+    getchar();  // Wait for Enter
+}

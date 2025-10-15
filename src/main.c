@@ -83,8 +83,14 @@ void initMenu(struct User *u)
             r = 1;
             break;
         case 2:
-            // student TODO : add your **Registration** function
-            // here
+            registerMenu(u->name, u->password);
+            // Check if registration was successful (username not empty)
+            if (strlen(u->name) > 0)
+            {
+                // Set user ID after successful registration
+                u->id = getUserId(u->name);
+                printf("\n\n\t\t\t\tYou can now login with option 1.\n");
+            }
             r = 1;
             break;
         case 3:
