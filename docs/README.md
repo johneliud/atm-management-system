@@ -3,14 +3,75 @@
 Welcome! This guide will help you understand the ATM Management System codebase. Since you're new to C, we'll explain everything step by step.
 
 ## Table of Contents
-1. [Project Overview](#project-overview)
-2. [How C Programs Work](#how-c-programs-work)
-3. [File Structure](#file-structure)
-4. [Understanding Data Structures](#understanding-data-structures)
-5. [How the Program Flows](#how-the-program-flows)
-6. [Understanding File I/O](#understanding-file-io)
-7. [Common C Concepts Used](#common-c-concepts-used)
-8. [Building and Running](#building-and-running)
+1. [Getting Started](#getting-started)
+2. [Project Overview](#project-overview)
+3. [How C Programs Work](#how-c-programs-work)
+4. [File Structure](#file-structure)
+5. [Understanding Data Structures](#understanding-data-structures)
+6. [How the Program Flows](#how-the-program-flows)
+7. [Understanding File I/O](#understanding-file-io)
+8. [Common C Concepts Used](#common-c-concepts-used)
+9. [Building and Running](#building-and-running)
+
+---
+
+## Getting Started
+
+### Cloning the Repository
+
+To get started with this project, you'll need to clone it from GitHub:
+
+```bash
+# Clone the repository
+git clone https://github.com/johneliud/atm-management-system.git
+
+# Navigate into the project directory
+cd atm-management-system
+
+# Check the contents
+ls -la
+```
+
+**What these commands do:**
+- `git clone` - Downloads the entire project from GitHub to your computer
+- `cd` - Changes directory (navigates into the folder)
+- `ls -la` - Lists all files including hidden ones
+
+### Prerequisites
+
+Before you can compile and run the project, make sure you have:
+
+1. **C Compiler** - `gcc` or `cc`
+   ```bash
+   # Check if you have a compiler
+   gcc --version
+   # or
+   cc --version
+   ```
+
+2. **Make** - Build automation tool
+   ```bash
+   # Check if you have make
+   make --version
+   ```
+
+3. **Git** - Version control (for cloning)
+   ```bash
+   # Check if you have git
+   git --version
+   ```
+
+**Installing on Linux (Ubuntu/Debian):**
+```bash
+sudo apt update
+sudo apt install build-essential git
+```
+
+**Installing on macOS:**
+```bash
+# Install Xcode Command Line Tools
+xcode-select --install
+```
 
 ---
 
