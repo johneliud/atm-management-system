@@ -158,6 +158,7 @@ void registerMenu(char a[50], char pass[50])
         printf("\n\t\t\t\tPress Enter to continue...");
         getchar();  // Clear input buffer
         getchar();  // Wait for Enter
+        a[0] = '\0';  // Clear username to signal registration failure
         return;
     }
 
@@ -173,28 +174,25 @@ void registerMenu(char a[50], char pass[50])
         return exit(1);
     }
 
-    printf("\n\t\t\t\tEnter a password: ");
-    scanf("%s", pass);
+    // Password input loop - continue until passwords match
+    do {
+        printf("\n\t\t\t\tEnter a password: ");
+        scanf("%s", pass);
 
-    printf("\n\t\t\t\tConfirm password: ");
-    scanf("%s", confirmPass);
+        printf("\n\t\t\t\tConfirm password: ");
+        scanf("%s", confirmPass);
+
+        if (strcmp(pass, confirmPass) != 0)
+        {
+            printf("\n\n\t\t\t\t✖ Passwords do not match! Please try again.\n");
+        }
+    } while (strcmp(pass, confirmPass) != 0);
 
     // Restore terminal
     if (tcsetattr(fileno(stdin), TCSANOW, &oflags) != 0)
     {
         perror("tcsetattr");
         return exit(1);
-    }
-
-    // Check if passwords match
-    if (strcmp(pass, confirmPass) != 0)
-    {
-        printf("\n\n\t\t\t\t✖ Passwords do not match!\n");
-        printf("\t\t\t\tRegistration failed. Please try again.\n");
-        printf("\n\t\t\t\tPress Enter to continue...");
-        getchar();  // Clear input buffer
-        getchar();  // Wait for Enter
-        return;
     }
 
     // Save new user to file
