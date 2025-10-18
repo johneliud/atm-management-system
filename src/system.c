@@ -216,3 +216,100 @@ void checkAllAccounts(struct User u)
     fclose(pf);
     success(u);
 }
+
+void updateAccountInfo(struct User u)
+{
+    int accountNbr, choice, found = 0;
+    char userName[100];
+    struct Record records[1000];
+    int recordCount = 0;
+    
+    FILE *pf = fopen(RECORDS, "r");
+    if (pf == NULL)
+    {
+        printf("Error! Could not open records file\n");
+        stayOrReturn(0, updateAccountInfo, u);
+        return;
+    }
+
+    system("clear");
+    printf("\t\t====== Update Account Information ======\n\n");
+    printf("Enter the account number you want to update: ");
+    scanf("%d", &accountNbr);
+
+    // Read all records into memory
+    while (getAccountFromFile(pf, userName, &records[recordCount]))
+    {
+        strcpy(records[recordCount].name, userName);
+        recordCount++;
+    }
+    fclose(pf);
+
+    // Find and update the specific account
+    for (int i = 0; i < recordCount; i++)
+    {
+        if (records[i].accountNbr == accountNbr && records[i].userId == u.id)
+        {
+            found = 1;
+            printf("\nAccount found! Current details:\n");
+            printf("Country: %s\n", records[i].country);
+            printf("Phone: %d\n", records[i].phone);
+            
+            printf("\nWhat would you like to update?\n");
+            printf("1. Country\n");
+            printf("2. Phone number\n");
+            printf("Enter your choice: ");
+            scanf("%d", &choice);
+
+            if (choice == 1)
+            {
+                printf("Enter new country: ");
+                scanf("%s", records[i].country);
+            }
+            else if (choice == 2)
+            {
+                printf("Enter new phone number: ");
+                scanf("%d", &records[i].phone);
+            }
+            else
+            {
+                printf("Invalid choice!\n");
+                stayOrReturn(0, updateAccountInfo, u);
+                return;
+            }
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        stayOrReturn(0, updateAccountInfo, u);
+        return;
+    }
+
+    // Write all records back to file
+    pf = fopen(RECORDS, "w");
+    if (pf == NULL)
+    {
+        printf("Error! Could not open records file for writing\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < recordCount; i++)
+    {
+        fprintf(pf, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n",
+                records[i].id,
+                records[i].userId,
+                records[i].name,
+                records[i].accountNbr,
+                records[i].deposit.month,
+                records[i].deposit.day,
+                records[i].deposit.year,
+                records[i].country,
+                records[i].phone,
+                records[i].amount,
+                records[i].accountType);
+    }
+    fclose(pf);
+    success(u);
+}
