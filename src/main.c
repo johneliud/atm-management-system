@@ -66,7 +66,9 @@ void initMenu(struct User *u)
             while (1)
             {
                 loginMenu(u->name, u->password);
-                if (strcmp(u->password, getPassword(*u)) == 0)
+                unsigned int hashedInput = hashPassword(u->password);
+                unsigned int storedHash = (unsigned int)atoi(getPassword(*u));
+                if (hashedInput == storedHash)
                 {
                     // Set user ID after successful login
                     u->id = getUserId(u->name);
