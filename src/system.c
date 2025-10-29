@@ -618,3 +618,91 @@ void removeAccount(struct User u)
         stayOrReturn(0, removeAccount, u);
     }
 }
+void transferOwnership(struct User u)
+{
+    int accountNbr, found = 0, targetUserId = -1;
+    char targetUsername[50];
+    char userName[100];
+    struct Record records[1000];
+    int recordCount = 0;
+    
+    FILE *pf = fopen(RECORDS, "r");
+    if (pf == NULL)
+    {
+        printf("Error! Could not open records file\n");
+        stayOrReturn(0, transferOwnership, u);
+        return;
+    }
+
+    system("clear");
+    printf("\t\t====== Transfer Ownership ======\n\n");
+    printf("Enter the account number to transfer: ");
+    scanf("%d", &accountNbr);
+
+    // Read all records into memory
+    while (getAccountFromFile(pf, userName, &records[recordCount]))
+    {
+        strcpy(records[recordCount].name, userName);
+        recordCount++;
+    }
+    fclose(pf);
+
+    // Find and verify account ownership
+    for (int i = 0; i < recordCount; i++)
+    {
+        if (records[i].accountNbr == accountNbr && records[i].userId == u.id)
+        {
+            found = 1;
+            printf("\nAccount found: %s - Balance: $%.2f\n", records[i].accountType, records[i].amount);
+            printf("Enter target username: ");
+            scanf("%s", targetUsername);
+            
+            // Verify target user exists
+            targetUserId = getUserId(targetUsername);
+            if (targetUserId == -1)
+            {
+                printf("\n✖ Target user '%s' does not exist\n", targetUsername);
+                stayOrReturn(0, transferOwnership, u);
+                return;
+            }
+            
+            // Update ownership
+            records[i].userId = targetUserId;
+            strcpy(records[i].name, targetUsername);
+            
+            // Write all records back to file
+            pf = fopen(RECORDS, "w");
+            if (pf == NULL)
+            {
+                printf("Error! Could not open records file for writing\n");
+                exit(1);
+            }
+
+            for (int k = 0; k < recordCount; k++)
+            {
+                fprintf(pf, "%d %d %s %d %d/%d/%d \"%s\" %d %.2lf %s\n",
+                        records[k].id,
+                        records[k].userId,
+                        records[k].name,
+                        records[k].accountNbr,
+                        records[k].deposit.month,
+                        records[k].deposit.day,
+                        records[k].deposit.year,
+                        records[k].country,
+                        records[k].phone,
+                        records[k].amount,
+                        records[k].accountType);
+            }
+            fclose(pf);
+            
+            printf("\n✔ Account ownership transferred successfully to %s!\n", targetUsername);
+            success(u);
+            return;
+        }
+    }
+
+    if (!found)
+    {
+        stayOrReturn(0, transferOwnership, u);
+    }
+}
