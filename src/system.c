@@ -34,7 +34,7 @@ int getNextRecordId()
 
 int getAccountFromFile(FILE *ptr, char name[50], struct Record *r)
 {
-    return fscanf(ptr, "%d %d %s %d %d/%d/%d %s %d %lf %s",
+    return fscanf(ptr, "%d %d %s %d %d/%d/%d \"%[^\"]\" %d %lf %s",
                   &r->id,
 		  &r->userId,
 		  name,
@@ -50,7 +50,7 @@ int getAccountFromFile(FILE *ptr, char name[50], struct Record *r)
 
 void saveAccountToFile(FILE *ptr, struct User u, struct Record r)
 {
-    fprintf(ptr, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n",
+    fprintf(ptr, "%d %d %s %d %d/%d/%d \"%s\" %d %.2lf %s\n\n",
             r.id,
             u.id,
             u.name,
@@ -161,7 +161,7 @@ noAccount:
     }
 
     printf("\nEnter the country:");
-    scanf("%s", r.country);
+    scanf(" %[^\n]", r.country);
     printf("\nEnter the phone number:");
     scanf("%d", &r.phone);
     printf("\nEnter amount to deposit: $");
@@ -264,7 +264,7 @@ void updateAccountInfo(struct User u)
             if (choice == 1)
             {
                 printf("Enter new country: ");
-                scanf("%s", records[i].country);
+                scanf(" %[^\n]", records[i].country);
             }
             else if (choice == 2)
             {
@@ -297,7 +297,7 @@ void updateAccountInfo(struct User u)
 
     for (int i = 0; i < recordCount; i++)
     {
-        fprintf(pf, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n",
+        fprintf(pf, "%d %d %s %d %d/%d/%d \"%s\" %d %.2lf %s\n",
                 records[i].id,
                 records[i].userId,
                 records[i].name,
@@ -511,7 +511,7 @@ void makeTransaction(struct User u)
 
     for (int i = 0; i < recordCount; i++)
     {
-        fprintf(pf, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n",
+        fprintf(pf, "%d %d %s %d %d/%d/%d \"%s\" %d %.2lf %s\n",
                 records[i].id,
                 records[i].userId,
                 records[i].name,
@@ -585,7 +585,7 @@ void removeAccount(struct User u)
 
                 for (int k = 0; k < recordCount; k++)
                 {
-                    fprintf(pf, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n",
+                    fprintf(pf, "%d %d %s %d %d/%d/%d \"%s\" %d %.2lf %s\n",
                             records[k].id,
                             records[k].userId,
                             records[k].name,
