@@ -527,3 +527,94 @@ void makeTransaction(struct User u)
     fclose(pf);
     success(u);
 }
+void removeAccount(struct User u)
+{
+    int accountNbr, found = 0;
+    char userName[100];
+    struct Record records[1000];
+    int recordCount = 0;
+    
+    FILE *pf = fopen(RECORDS, "r");
+    if (pf == NULL)
+    {
+        printf("Error! Could not open records file\n");
+        stayOrReturn(0, removeAccount, u);
+        return;
+    }
+
+    system("clear");
+    printf("\t\t====== Remove Account ======\n\n");
+    printf("Enter the account number to remove: ");
+    scanf("%d", &accountNbr);
+
+    // Read all records into memory
+    while (getAccountFromFile(pf, userName, &records[recordCount]))
+    {
+        strcpy(records[recordCount].name, userName);
+        recordCount++;
+    }
+    fclose(pf);
+
+    // Find and verify account ownership
+    for (int i = 0; i < recordCount; i++)
+    {
+        if (records[i].accountNbr == accountNbr && records[i].userId == u.id)
+        {
+            found = 1;
+            printf("\nAccount found: %s - Balance: $%.2f\n", records[i].accountType, records[i].amount);
+            printf("Are you sure you want to remove this account? (y/n): ");
+            char confirm;
+            scanf(" %c", &confirm);
+            
+            if (confirm == 'y' || confirm == 'Y')
+            {
+                // Remove account by shifting remaining records
+                for (int j = i; j < recordCount - 1; j++)
+                {
+                    records[j] = records[j + 1];
+                }
+                recordCount--;
+                
+                // Write remaining records back to file
+                pf = fopen(RECORDS, "w");
+                if (pf == NULL)
+                {
+                    printf("Error! Could not open records file for writing\n");
+                    exit(1);
+                }
+
+                for (int k = 0; k < recordCount; k++)
+                {
+                    fprintf(pf, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n",
+                            records[k].id,
+                            records[k].userId,
+                            records[k].name,
+                            records[k].accountNbr,
+                            records[k].deposit.month,
+                            records[k].deposit.day,
+                            records[k].deposit.year,
+                            records[k].country,
+                            records[k].phone,
+                            records[k].amount,
+                            records[k].accountType);
+                }
+                fclose(pf);
+                
+                printf("\n✔ Account removed successfully!\n");
+                success(u);
+                return;
+            }
+            else
+            {
+                printf("\nAccount removal cancelled.\n");
+                success(u);
+                return;
+            }
+        }
+    }
+
+    if (!found)
+    {
+        stayOrReturn(0, removeAccount, u);
+    }
+}
