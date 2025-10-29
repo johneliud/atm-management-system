@@ -393,3 +393,137 @@ void checkAccountDetails(struct User u)
         success(u);
     }
 }
+
+void makeTransaction(struct User u)
+{
+    int accountNbr, choice, found = 0;
+    double amount;
+    char userName[100];
+    struct Record records[1000];
+    int recordCount = 0;
+    
+    FILE *pf = fopen(RECORDS, "r");
+    if (pf == NULL)
+    {
+        printf("Error! Could not open records file\n");
+        stayOrReturn(0, makeTransaction, u);
+        return;
+    }
+
+    system("clear");
+    printf("\t\t====== Make Transaction ======\n\n");
+    printf("Enter the account number: ");
+    scanf("%d", &accountNbr);
+
+    // Read all records into memory
+    while (getAccountFromFile(pf, userName, &records[recordCount]))
+    {
+        strcpy(records[recordCount].name, userName);
+        recordCount++;
+    }
+    fclose(pf);
+
+    // Find the account
+    for (int i = 0; i < recordCount; i++)
+    {
+        if (records[i].accountNbr == accountNbr && records[i].userId == u.id)
+        {
+            found = 1;
+            
+            // Check if account type allows transactions
+            if (strcmp(records[i].accountType, "fixed01") == 0 || 
+                strcmp(records[i].accountType, "fixed02") == 0 || 
+                strcmp(records[i].accountType, "fixed03") == 0)
+            {
+                printf("\n✖ Error: Transactions are not allowed on fixed-term accounts\n");
+                stayOrReturn(0, makeTransaction, u);
+                return;
+            }
+
+            printf("\nCurrent balance: $%.2f\n", records[i].amount);
+            printf("\nSelect transaction type:\n");
+            printf("1. Deposit\n");
+            printf("2. Withdraw\n");
+            printf("Enter your choice: ");
+            scanf("%d", &choice);
+
+            if (choice == 1)
+            {
+                printf("Enter amount to deposit: $");
+                scanf("%lf", &amount);
+                if (amount > 0)
+                {
+                    records[i].amount += amount;
+                    printf("\n✔ Deposit successful! New balance: $%.2f\n", records[i].amount);
+                }
+                else
+                {
+                    printf("\n✖ Invalid amount\n");
+                    stayOrReturn(0, makeTransaction, u);
+                    return;
+                }
+            }
+            else if (choice == 2)
+            {
+                printf("Enter amount to withdraw: $");
+                scanf("%lf", &amount);
+                if (amount > 0 && amount <= records[i].amount)
+                {
+                    records[i].amount -= amount;
+                    printf("\n✔ Withdrawal successful! New balance: $%.2f\n", records[i].amount);
+                }
+                else if (amount > records[i].amount)
+                {
+                    printf("\n✖ Insufficient balance\n");
+                    stayOrReturn(0, makeTransaction, u);
+                    return;
+                }
+                else
+                {
+                    printf("\n✖ Invalid amount\n");
+                    stayOrReturn(0, makeTransaction, u);
+                    return;
+                }
+            }
+            else
+            {
+                printf("\n✖ Invalid choice\n");
+                stayOrReturn(0, makeTransaction, u);
+                return;
+            }
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        stayOrReturn(0, makeTransaction, u);
+        return;
+    }
+
+    // Write all records back to file
+    pf = fopen(RECORDS, "w");
+    if (pf == NULL)
+    {
+        printf("Error! Could not open records file for writing\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < recordCount; i++)
+    {
+        fprintf(pf, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n",
+                records[i].id,
+                records[i].userId,
+                records[i].name,
+                records[i].accountNbr,
+                records[i].deposit.month,
+                records[i].deposit.day,
+                records[i].deposit.year,
+                records[i].country,
+                records[i].phone,
+                records[i].amount,
+                records[i].accountType);
+    }
+    fclose(pf);
+    success(u);
+}
