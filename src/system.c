@@ -143,31 +143,56 @@ noAccount:
     system("clear");
     printf("\t\t\t===== New record =====\n");
 
-    printf("\nEnter today's date(mm/dd/yyyy):");
-    scanf("%d/%d/%d", &r.deposit.month, &r.deposit.day, &r.deposit.year);
-    printf("\nEnter the account number:");
-    scanf("%d", &r.accountNbr);
-
-    // Reset file pointer to beginning for duplicate check
-    rewind(pf);
-
-    while (getAccountFromFile(pf, userName, &cr))
+    // Get valid date
+    printf("\nEnter today's date:\n");
+    getValidDate(&r.deposit.month, &r.deposit.day, &r.deposit.year);
+    
+    // Get valid account number
+    while (1)
     {
-        if (strcmp(userName, u.name) == 0 && cr.accountNbr == r.accountNbr)
+        r.accountNbr = getValidInt("\nEnter the account number (1-999999999): ", 1, 999999999);
+        
+        // Reset file pointer to beginning for duplicate check
+        rewind(pf);
+        int duplicate = 0;
+        
+        while (getAccountFromFile(pf, userName, &cr))
         {
-            printf("✖ This Account already exists for this user\n\n");
-            goto noAccount;
+            if (strcmp(userName, u.name) == 0 && cr.accountNbr == r.accountNbr)
+            {
+                printf("✖ This Account already exists for this user\n");
+                duplicate = 1;
+                break;
+            }
         }
+        
+        if (!duplicate) break;
     }
 
-    printf("\nEnter the country:");
-    scanf(" %[^\n]", r.country);
-    printf("\nEnter the phone number:");
-    scanf("%d", &r.phone);
-    printf("\nEnter amount to deposit: $");
-    scanf("%lf", &r.amount);
-    printf("\nChoose the type of account:\n\t-> saving\n\t-> current\n\t-> fixed01(for 1 year)\n\t-> fixed02(for 2 years)\n\t-> fixed03(for 3 years)\n\n\tEnter your choice:");
-    scanf("%s", r.accountType);
+    // Get valid country
+    getValidString("\nEnter the country: ", r.country, sizeof(r.country));
+    
+    // Get valid phone number
+    r.phone = getValidInt("\nEnter the phone number (1-999999999): ", 1, 999999999);
+    
+    // Get valid deposit amount
+    r.amount = getValidDouble("\nEnter amount to deposit: $", 0.01, 1000000.00);
+    
+    // Get valid account type
+    printf("\nChoose the type of account:\n\t-> saving\n\t-> current\n\t-> fixed01(for 1 year)\n\t-> fixed02(for 2 years)\n\t-> fixed03(for 3 years)\n");
+    while (1)
+    {
+        getValidString("\nEnter your choice: ", r.accountType, sizeof(r.accountType));
+        if (strcmp(r.accountType, "saving") == 0 || 
+            strcmp(r.accountType, "current") == 0 || 
+            strcmp(r.accountType, "fixed01") == 0 || 
+            strcmp(r.accountType, "fixed02") == 0 || 
+            strcmp(r.accountType, "fixed03") == 0)
+        {
+            break;
+        }
+        printf("✖ Invalid account type. Please choose: saving, current, fixed01, fixed02, or fixed03\n");
+    }
 
     // Set record ID and user ID
     r.id = getNextRecordId();
@@ -234,8 +259,8 @@ void updateAccountInfo(struct User u)
 
     system("clear");
     printf("\t\t====== Update Account Information ======\n\n");
-    printf("Enter the account number you want to update: ");
-    scanf("%d", &accountNbr);
+    
+    accountNbr = getValidInt("Enter the account number you want to update: ", 1, 999999999);
 
     // Read all records into memory
     while (getAccountFromFile(pf, userName, &records[recordCount]))
@@ -258,24 +283,16 @@ void updateAccountInfo(struct User u)
             printf("\nWhat would you like to update?\n");
             printf("1. Country\n");
             printf("2. Phone number\n");
-            printf("Enter your choice: ");
-            scanf("%d", &choice);
+            
+            choice = getValidInt("Enter your choice (1-2): ", 1, 2);
 
             if (choice == 1)
             {
-                printf("Enter new country: ");
-                scanf(" %[^\n]", records[i].country);
+                getValidString("Enter new country: ", records[i].country, sizeof(records[i].country));
             }
             else if (choice == 2)
             {
-                printf("Enter new phone number: ");
-                scanf("%d", &records[i].phone);
-            }
-            else
-            {
-                printf("Invalid choice!\n");
-                stayOrReturn(0, updateAccountInfo, u);
-                return;
+                records[i].phone = getValidInt("Enter new phone number (1-999999999): ", 1, 999999999);
             }
             break;
         }
@@ -331,8 +348,8 @@ void checkAccountDetails(struct User u)
 
     system("clear");
     printf("\t\t====== Account Details ======\n\n");
-    printf("Enter the account number you want to check: ");
-    scanf("%d", &accountNbr);
+    
+    accountNbr = getValidInt("Enter the account number you want to check: ", 1, 999999999);
 
     while (getAccountFromFile(pf, userName, &r))
     {
@@ -412,8 +429,8 @@ void makeTransaction(struct User u)
 
     system("clear");
     printf("\t\t====== Make Transaction ======\n\n");
-    printf("Enter the account number: ");
-    scanf("%d", &accountNbr);
+    
+    accountNbr = getValidInt("Enter the account number: ", 1, 999999999);
 
     // Read all records into memory
     while (getAccountFromFile(pf, userName, &records[recordCount]))
@@ -444,52 +461,21 @@ void makeTransaction(struct User u)
             printf("\nSelect transaction type:\n");
             printf("1. Deposit\n");
             printf("2. Withdraw\n");
-            printf("Enter your choice: ");
-            scanf("%d", &choice);
+            
+            choice = getValidInt("Enter your choice (1-2): ", 1, 2);
 
             if (choice == 1)
             {
-                printf("Enter amount to deposit: $");
-                scanf("%lf", &amount);
-                if (amount > 0)
-                {
-                    records[i].amount += amount;
-                    printf("\n✔ Deposit successful! New balance: $%.2f\n", records[i].amount);
-                }
-                else
-                {
-                    printf("\n✖ Invalid amount\n");
-                    stayOrReturn(0, makeTransaction, u);
-                    return;
-                }
+                amount = getValidDouble("Enter amount to deposit: $", 0.01, 1000000.00);
+                records[i].amount += amount;
+                printf("\n✔ Deposit successful! New balance: $%.2f\n", records[i].amount);
             }
             else if (choice == 2)
             {
-                printf("Enter amount to withdraw: $");
-                scanf("%lf", &amount);
-                if (amount > 0 && amount <= records[i].amount)
-                {
-                    records[i].amount -= amount;
-                    printf("\n✔ Withdrawal successful! New balance: $%.2f\n", records[i].amount);
-                }
-                else if (amount > records[i].amount)
-                {
-                    printf("\n✖ Insufficient balance\n");
-                    stayOrReturn(0, makeTransaction, u);
-                    return;
-                }
-                else
-                {
-                    printf("\n✖ Invalid amount\n");
-                    stayOrReturn(0, makeTransaction, u);
-                    return;
-                }
-            }
-            else
-            {
-                printf("\n✖ Invalid choice\n");
-                stayOrReturn(0, makeTransaction, u);
-                return;
+                printf("Available balance: $%.2f\n", records[i].amount);
+                amount = getValidDouble("Enter amount to withdraw: $", 0.01, records[i].amount);
+                records[i].amount -= amount;
+                printf("\n✔ Withdrawal successful! New balance: $%.2f\n", records[i].amount);
             }
             break;
         }
@@ -544,8 +530,8 @@ void removeAccount(struct User u)
 
     system("clear");
     printf("\t\t====== Remove Account ======\n\n");
-    printf("Enter the account number to remove: ");
-    scanf("%d", &accountNbr);
+    
+    accountNbr = getValidInt("Enter the account number to remove: ", 1, 999999999);
 
     // Read all records into memory
     while (getAccountFromFile(pf, userName, &records[recordCount]))
@@ -562,11 +548,10 @@ void removeAccount(struct User u)
         {
             found = 1;
             printf("\nAccount found: %s - Balance: $%.2f\n", records[i].accountType, records[i].amount);
-            printf("Are you sure you want to remove this account? (y/n): ");
-            char confirm;
-            scanf(" %c", &confirm);
             
-            if (confirm == 'y' || confirm == 'Y')
+            int confirm = getValidInt("Are you sure you want to remove this account? (1=Yes, 0=No): ", 0, 1);
+            
+            if (confirm == 1)
             {
                 // Remove account by shifting remaining records
                 for (int j = i; j < recordCount - 1; j++)
@@ -636,8 +621,8 @@ void transferOwnership(struct User u)
 
     system("clear");
     printf("\t\t====== Transfer Ownership ======\n\n");
-    printf("Enter the account number to transfer: ");
-    scanf("%d", &accountNbr);
+    
+    accountNbr = getValidInt("Enter the account number to transfer: ", 1, 999999999);
 
     // Read all records into memory
     while (getAccountFromFile(pf, userName, &records[recordCount]))
@@ -654,8 +639,8 @@ void transferOwnership(struct User u)
         {
             found = 1;
             printf("\nAccount found: %s - Balance: $%.2f\n", records[i].accountType, records[i].amount);
-            printf("Enter target username: ");
-            scanf("%s", targetUsername);
+            
+            getValidString("Enter target username: ", targetUsername, sizeof(targetUsername));
             
             // Verify target user exists
             targetUserId = getUserId(targetUsername);
