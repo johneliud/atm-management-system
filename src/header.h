@@ -34,6 +34,7 @@ void loginMenu(char a[50], char pass[50]);
 void registerMenu(char a[50], char pass[50]);
 const char *getPassword(struct User u);
 int getUserId(const char *username);
+unsigned int hashPassword(const char *password);
 
 // system function
 void createNewAcc(struct User u);

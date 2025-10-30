@@ -3,6 +3,16 @@
 
 char *USERS = "./data/users.txt";
 
+// Simple hash function for password encryption
+unsigned int hashPassword(const char *password)
+{
+    unsigned int hash = 5381;
+    int c;
+    while ((c = *password++))
+        hash = ((hash << 5) + hash) + c;
+    return hash;
+}
+
 void loginMenu(char a[50], char pass[50])
 {
     struct termios oflags, nflags;
@@ -37,7 +47,7 @@ const char *getPassword(struct User u)
 {
     FILE *fp;
     struct User userChecker;
-    static char passwordBuffer[50];  // Static buffer persists after function returns
+    static char passwordBuffer[50];
 
     if ((fp = fopen("./data/users.txt", "r")) == NULL)
     {
@@ -50,7 +60,7 @@ const char *getPassword(struct User u)
         if (strcmp(userChecker.name, u.name) == 0)
         {
             fclose(fp);
-            strcpy(passwordBuffer, userChecker.password);  // Copy to static buffer
+            strcpy(passwordBuffer, userChecker.password);
             return passwordBuffer;
         }
     }
@@ -64,6 +74,7 @@ int getUserId(const char *username)
 {
     FILE *fp;
     struct User userChecker;
+    char passwordHash[50];
 
     if ((fp = fopen("./data/users.txt", "r")) == NULL)
     {
@@ -71,7 +82,7 @@ int getUserId(const char *username)
         exit(1);
     }
 
-    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF)
+    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, passwordHash) != EOF)
     {
         if (strcmp(userChecker.name, username) == 0)
         {
@@ -89,6 +100,7 @@ int usernameExists(const char *username)
 {
     FILE *fp;
     struct User userChecker;
+    char passwordHash[50];
 
     fp = fopen("./data/users.txt", "r");
     if (fp == NULL)
@@ -97,7 +109,7 @@ int usernameExists(const char *username)
         return 0;
     }
 
-    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF)
+    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, passwordHash) != EOF)
     {
         if (strcmp(userChecker.name, username) == 0)
         {
@@ -115,6 +127,7 @@ int getNextUserId()
 {
     FILE *fp;
     struct User userChecker;
+    char passwordHash[50];
     int maxId = -1;
 
     fp = fopen("./data/users.txt", "r");
@@ -124,7 +137,7 @@ int getNextUserId()
         return 0;
     }
 
-    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF)
+    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, passwordHash) != EOF)
     {
         if (userChecker.id > maxId)
         {
@@ -204,7 +217,8 @@ void registerMenu(char a[50], char pass[50])
     }
 
     int newUserId = getNextUserId();
-    fprintf(fp, "%d %s %s\n", newUserId, a, pass);
+    unsigned int hashedPassword = hashPassword(pass);
+    fprintf(fp, "%d %s %u\n", newUserId, a, hashedPassword);
     fclose(fp);
 
     printf("\n\n\t\t\t\t✔ Registration successful!\n");
