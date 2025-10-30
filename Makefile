@@ -8,7 +8,7 @@ DATADIR = data
 TARGET = atm
 
 # Source files and objects
-SOURCES = $(SRCDIR)/main.c $(SRCDIR)/system.c $(SRCDIR)/auth.c
+SOURCES = $(SRCDIR)/main.c $(SRCDIR)/system.c $(SRCDIR)/auth.c $(SRCDIR)/validation.c
 OBJECTS = $(SOURCES:.c=.o)
 HEADER = $(SRCDIR)/header.h
 
