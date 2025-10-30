@@ -36,6 +36,16 @@ const char *getPassword(struct User u);
 int getUserId(const char *username);
 unsigned int hashPassword(const char *password);
 
+// input validation functions
+int validateDate(int month, int day, int year);
+int validateAccountNumber(int accountNbr);
+int validatePhoneNumber(int phone);
+int validateAmount(double amount);
+int getValidInt(const char *prompt, int min, int max);
+double getValidDouble(const char *prompt, double min, double max);
+void getValidString(const char *prompt, char *str, int maxLen);
+int getValidDate(int *month, int *day, int *year);
+
 // system function
 void createNewAcc(struct User u);
 void mainMenu(struct User u);
